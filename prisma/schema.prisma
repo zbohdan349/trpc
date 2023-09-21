@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  categoryId String
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  items      Item[]
+}
+
+model Collection {
+  id    String @id @default(uuid())
+  name  String
+  items Item[]
+}
+
+model Item {
+  id            String       @id @default(uuid())
+  name          String
+  properties    Json
+  img           String[]
+  price         Decimal
+  amount        Int
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  subCategoryId String?
+  collection    Collection?  @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  collectionId  String?
+  discount      Discount[]
+  buskets       Busket[]
+}
+
+model Discount {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  value     Int
+  items     Item[]
+}
+
+model Busket {
+  id     String @id @default(uuid())
+  items  Item[]
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model User {
+  id         String  @id @default(uuid())
+  email      String  @unique
+  phone      String  @unique
+  firstName  String
+  secondName String
+  role       Role    @default(USER)
+  busket     Busket?
+  busketId   String?
+}
+
+enum Role {
+  USER
+  ADMIN
+}
